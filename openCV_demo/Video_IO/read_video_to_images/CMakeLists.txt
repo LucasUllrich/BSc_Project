@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project( read_video_to_images )
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+add_executable( read_video_to_images read_video_to_images.cpp )
+target_link_libraries( read_video_to_images ${OpenCV_LIBS} )

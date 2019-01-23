@@ -1,0 +1,5 @@
+[----------] 64 tests from OCL_Core/Gemm
+[ RUN      ] OCL_Core/Gemm.Accuracy/0, where GetParam() = (32FC1, false, false, false, false)
+opencv_test_core: /builddir/build/BUILD/Beignet-1.3.2-Source/backend/src/backend/gen_context.cpp:2053: void gbe::GenContext::emitUnSpillRegInstruction(const gbe::SelectionInstruction&): Assertion `regSize == 4 || regSize == 8' failed.
+Aborted (core dumped)
+
