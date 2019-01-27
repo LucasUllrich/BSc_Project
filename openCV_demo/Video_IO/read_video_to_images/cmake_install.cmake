@@ -1,4 +1,4 @@
-# Install script for directory: /home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images
+# Install script for directory: /home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

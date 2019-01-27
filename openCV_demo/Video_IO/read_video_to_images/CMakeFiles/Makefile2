@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images
+CMAKE_SOURCE_DIR = /home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images
+CMAKE_BINARY_DIR = /home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images
 
 #=============================================================================
 # Target rules for target CMakeFiles/read_video_to_images.dir
@@ -66,7 +66,7 @@ CMAKE_BINARY_DIR = /home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO
 CMakeFiles/read_video_to_images.dir/all:
 	$(MAKE) -f CMakeFiles/read_video_to_images.dir/build.make CMakeFiles/read_video_to_images.dir/depend
 	$(MAKE) -f CMakeFiles/read_video_to_images.dir/build.make CMakeFiles/read_video_to_images.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/CMakeFiles --progress-num=1,2 "Built target read_video_to_images"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/CMakeFiles --progress-num=1,2 "Built target read_video_to_images"
 .PHONY : CMakeFiles/read_video_to_images.dir/all
 
 # Include target in all.
@@ -76,9 +76,9 @@ all: CMakeFiles/read_video_to_images.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/read_video_to_images.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/CMakeFiles 2
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/read_video_to_images.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/CMakeFiles 0
 .PHONY : CMakeFiles/read_video_to_images.dir/rule
 
 # Convenience name for target.

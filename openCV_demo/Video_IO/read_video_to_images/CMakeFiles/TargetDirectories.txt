@@ -1,3 +1,3 @@
-/home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/CMakeFiles/rebuild_cache.dir
-/home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/CMakeFiles/read_video_to_images.dir
-/home/lucasullrich/Documents/Studium/BSc/openCV_demo/Video_IO/read_video_to_images/CMakeFiles/edit_cache.dir
+/home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/CMakeFiles/rebuild_cache.dir
+/home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/CMakeFiles/read_video_to_images.dir
+/home/lucasullrich/Documents/Studium/BSc_Project/openCV_demo/Video_IO/read_video_to_images/CMakeFiles/edit_cache.dir
