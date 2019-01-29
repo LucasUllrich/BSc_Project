@@ -1,0 +1,3 @@
+/home/lucasullrich/Documents/Studium/BSc_Project/Code/CMakeFiles/rebuild_cache.dir
+/home/lucasullrich/Documents/Studium/BSc_Project/Code/CMakeFiles/read_video_to_images.dir
+/home/lucasullrich/Documents/Studium/BSc_Project/Code/CMakeFiles/edit_cache.dir

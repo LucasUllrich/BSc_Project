@@ -15,14 +15,21 @@ using namespace cv;
 #define PI 3.14159265
 
 #define SOLUTION_1 0
-#define SOLUTION_2 0
+#define SOLUTION_2 1
 
 // DEBUGGING
 #define CSV_OUTPUT 0
 #define BASH_OUTPUT 0
 #define DEBUG_TIME 0
-#define DEBUG_PLAN 1
+#define DEBUG_PLAN 0
+#define DEBUG_LINE_MARKING 0
+#define DEBUG_PLAN_CSV 0
+#define DEBUG_MARKING_CSV 0
+#define DEBUG_CAMERA_PATH 0
 #define IMAGE_PROCESSING 1
+#define VIDEO1 0
+#define VIDEO2 1
+#define STORE_FRAMES 0
 
 #if DEBUG_TIME
   #include <chrono>
@@ -36,15 +43,69 @@ struct GPS_Point {
 };
 
 struct Line_Marking_Points {
-  double latitude;
-  double longitude;
+  /*long double*/int latitude;
+  /*long double*/int longitude;
 };
+
 
 long double degreeToRadiant(long double degree)
 {
   return (degree * (long double) PI / 180);
 }
 
+
+bool lineMarkCompare(Line_Marking_Points lhs, Line_Marking_Points rhs)
+{
+  return lhs.latitude < rhs.latitude;
+}
+
+
+double longitudeToLatitude(long double latitude)
+{
+  return (0.000053979563197308 * pow(latitude, 3) - 0.01911988569736 * pow(latitude, 2) + 0.026419572546895 * latitude + 111.32);
+}
+
+bool comparePositionToLineMark(int pixelPositionEast, int pixelPositionNorth, Line_Marking_Points *lmp, int markingSize)
+{
+  int stepSizeIndexing = markingSize / 19;
+  #if DEBUG_LINE_MARKING
+    cout << "pixelPositionEast, pixelPositionNorth, lmp.lat, lmp.long, markingSize" << endl;
+    cout << pixelPositionEast << "; " << pixelPositionNorth << "; " << lmp[0].latitude << "; " << lmp[0].longitude << "; " << markingSize << endl;
+  #endif
+  // cout << "pixelPositionNorth: " << pixelPositionNorth << endl;
+  // cout << "lmp[221].latitude:  " << lmp[221].latitude << endl << endl;
+  // cout << "pixelPositionEast:  " << pixelPositionEast << endl;
+  // cout << "lmp[195].longitude: " << lmp[195].longitude << endl << endl;
+
+  for(int indexCounterLat = 0; indexCounterLat < markingSize; indexCounterLat += stepSizeIndexing)
+  {
+    if((pixelPositionNorth > lmp[indexCounterLat].latitude) & (pixelPositionNorth < lmp[(indexCounterLat + stepSizeIndexing)].latitude))
+    {
+      // approximate match for latitude
+      // cout << "appox match lat" << endl;
+      for(int lmpCounterLat = indexCounterLat; lmpCounterLat < (indexCounterLat + stepSizeIndexing); lmpCounterLat++)
+      {
+        if(pixelPositionNorth == lmp[lmpCounterLat].latitude)
+        {
+          // match for latitude
+          // cout << "match lat" << endl;
+          if(pixelPositionEast == lmp[lmpCounterLat].longitude)
+          {
+            // cout << "match lat" << endl;
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+
+
+/********************/
+/*** Main routine ***/
+/********************/
 int main (int argc, char ** argv)
 {
   if (argc < 3)
@@ -156,21 +217,18 @@ int main (int argc, char ** argv)
     double deltaLatitude = gpsPoint[lineCounter].endLatitude - gpsPoint[lineCounter].startLatitude;
     double deltaLongitude = gpsPoint[lineCounter].endLongitude - gpsPoint[lineCounter].startLongitude;
     int steps;
-    if (deltaLatitude > deltaLongitude)
-      steps = deltaLatitude * 1000000;
+    if (abs(deltaLatitude) > abs(deltaLongitude))
+      steps = abs(deltaLatitude) * 1000000;
     else
-      steps = deltaLatitude * 1000000;
+      steps = abs(deltaLongitude) * 1000000;
 
-    if (steps < 0)
-      steps = steps * -1;
-
+    cout.precision(8);
     Line_Marking_Points *tempLineMark = new Line_Marking_Points[++steps];
     for(int stepCounter = 0; stepCounter < steps; stepCounter++)
     {
-      tempLineMark[stepCounter].latitude = gpsPoint[lineCounter].startLatitude + (double) stepCounter * (deltaLatitude / (double) steps);
-      tempLineMark[stepCounter].longitude = gpsPoint[lineCounter].startLongitude + (double) stepCounter * (deltaLongitude / (double) steps);
+      tempLineMark[stepCounter].latitude = (gpsPoint[lineCounter].startLatitude + (long double) stepCounter * (deltaLatitude / (long double) (steps - 1))) * 1000000;
+      tempLineMark[stepCounter].longitude = (gpsPoint[lineCounter].startLongitude + (double) stepCounter * (deltaLongitude / (double) (steps - 1))) * 1000000;
     }
-    
     markingSize += steps;
     Line_Marking_Points *temp = new Line_Marking_Points[markingSize];
     memcpy(temp, lineMark, (markingSize - steps) * sizeof(Line_Marking_Points));
@@ -179,6 +237,9 @@ int main (int argc, char ** argv)
     lineMark = temp;
     delete[] tempLineMark;
   }
+
+  sort(lineMark, lineMark + markingSize, lineMarkCompare);
+
 
   #if DEBUG_PLAN
     for(int debugCounter = 0; debugCounter < markingSize; debugCounter++)
@@ -189,6 +250,13 @@ int main (int argc, char ** argv)
     }
   #endif
 
+  #if DEBUG_PLAN_CSV
+    for(int debugCounter = 0; debugCounter < markingSize; debugCounter++)
+    {
+      cout << lineMark[debugCounter].latitude << ";" << lineMark[debugCounter].longitude << endl;
+    }
+    return 0;
+  #endif
 
 
   /************************/
@@ -215,28 +283,49 @@ int main (int argc, char ** argv)
   frameHeight = captVidSrc.get(CAP_PROP_FRAME_HEIGHT);
   frameWidth = captVidSrc.get(CAP_PROP_FRAME_WIDTH);
 
+  #if VIDEO1
+    long double latitudeStart = 48.3788083;
+    long double longitudeStart = 16.8258389;
+    long double latitudeEnd = 48.378706;
+    long double longitudeEnd = 16.825814;
+    double direction = 189;
+  #endif
+  #if VIDEO2
+    long double latitudeStart = 48.378986;
+    long double longitudeStart = 16.825719;
+    long double latitudeEnd = 48.378914;
+    long double longitudeEnd =  16.825755;
+    double direction = 150;
+  #endif
+
+  long double latitudePath[(int)captVidSrc.get(CAP_PROP_FRAME_COUNT)];
+  long double longitudePath[(int)captVidSrc.get(CAP_PROP_FRAME_COUNT)];
+
+  double tilt = 89;
+  Mat frame;
+
+  int frameCounter = 0;
+
   while(1)
   {
-    Mat frame;
-
     if(!captVidSrc.read(frame))
     {
       cout << "All frames read or error reading a frame" << endl;
       break;
     }
 
+    latitudePath[frameCounter] = latitudeStart +  ((latitudeEnd - latitudeStart) / captVidSrc.get(CAP_PROP_FRAME_COUNT)) * frameCounter;
+    longitudePath[frameCounter] = longitudeStart +  ((longitudeEnd - longitudeStart) / captVidSrc.get(CAP_PROP_FRAME_COUNT)) * frameCounter;
+
+    #if DEBUG_CAMERA_PATH
+      cout << "latPath" << frameCounter << ":  " << latitudePath[frameCounter] << endl;
+      cout << "longPath" << frameCounter << ": " << longitudePath[frameCounter] << endl << endl;
+    #endif
+
     // GPS Data
-    // Temporarily
-    long double latitude = 48.3788083;
-    long double longitude = 16.8258389;
-    // VID1
-    double direction = 189;
-    // VID2
-    // double direction = 159;
     
 
     // Position variables
-    double tilt = 80;
 
     // Coordinate variables
     long double distanceOfBaseline;
@@ -245,8 +334,8 @@ int main (int argc, char ** argv)
     long double distanceOfBaselineCenterEast;
     long double distanceOfSidelineNorth;
     long double distanceOfSidelineEast;
-    long double pixelPositionEast;
-    long double pixelPositionNorth;
+    int pixelPositionEast;
+    int pixelPositionNorth;
 
     cout.precision(9);
 
@@ -301,8 +390,8 @@ int main (int argc, char ** argv)
         long double pixelDistanceEast = distanceOfBaselineCenterEast + distanceOfSidelineEast;
         long double pixelDistanceNorth = distanceOfBaselineCenterNorth + distanceOfSidelineNorth;
 
-        pixelPositionEast = longitude + ((pixelDistanceEast / 1000000) / 111.32);
-        pixelPositionNorth = latitude + ((pixelDistanceNorth / 1000000) / 111.32);
+        pixelPositionEast = longitudePath[frameCounter] + ((pixelDistanceEast / 1000000) / 111.32);
+        pixelPositionNorth = latitudePath[frameCounter] + ((pixelDistanceNorth / 1000000) / 111.32);
 
         #if BASH_OUTPUT
           cout << "Angle: " << sidelinePixelAngle << ";distanceOfSideline: " << distanceOfSideline << ";distanceOfSidelineEast: " << distanceOfSidelineEast << endl;  
@@ -343,12 +432,12 @@ int main (int argc, char ** argv)
       long double distanceOfSidelineEastGPS = (distanceOfSidelineEast / 1000000) / 111.32;  // change to latitude position!!!!*********************
       long double distanceOfSidelineNorthGPS = (distanceOfSidelineNorth / 1000000) / 111.32;
 
-      long double longitudeLeftPoint = longitude + distanceOfBaselineCenterEastGPS + distanceOfSidelineEastGPS;
-      long double latitudeLeftPoint = latitude + distanceOfBaselineCenterNorthGPS + distanceOfSidelineNorthGPS;
+      long double longitudeLeftPoint = longitudePath[frameCounter] + distanceOfBaselineCenterEastGPS + distanceOfSidelineEastGPS;
+      long double latitudeLeftPoint = latitudePath[frameCounter] + distanceOfBaselineCenterNorthGPS + distanceOfSidelineNorthGPS;
 
       #if BASH_OUTPUT
-        cout << "longitude: " << longitude << endl;
-        cout << "latitude:  " << latitude << endl;
+        cout << "longitude: " << longitudePath[frameCounter] << endl;
+        cout << "latitude:  " << latitudePath[frameCounter] << endl;
         cout << "distanceOfBaselineCenterEast:  " << distanceOfBaselineCenterEast << endl;
         cout << "distanceOfBaselineCenterNorth: " << distanceOfBaselineCenterNorth << endl;
         cout << "****Left point of view****" << endl;
@@ -364,8 +453,8 @@ int main (int argc, char ** argv)
       distanceOfSidelineEastGPS = (distanceOfSidelineEast / 1000000) / 111.32;
       distanceOfSidelineNorthGPS = (distanceOfSidelineNorth / 1000000) / 111.32;
 
-      long double longitudeRightPoint = longitude + distanceOfBaselineCenterEastGPS + distanceOfSidelineEastGPS;
-      long double latitudeRightPoint = latitude + distanceOfBaselineCenterNorthGPS + distanceOfSidelineNorthGPS;
+      long double longitudeRightPoint = longitudePath[frameCounter] + distanceOfBaselineCenterEastGPS + distanceOfSidelineEastGPS;
+      long double latitudeRightPoint = latitudePath[frameCounter] + distanceOfBaselineCenterNorthGPS + distanceOfSidelineNorthGPS;
 
       #if BASH_OUTPUT
         cout << "****Right point of View****" << endl;
@@ -382,7 +471,7 @@ int main (int argc, char ** argv)
       long double deviationEast = longitudeRightPoint - longitudeLeftPoint;
       long double deviationNorth = latitudeRightPoint - latitudeLeftPoint;
 
-      long double steppingWidthEast = deviationEast / (long double) frameWidth;
+      long double steppingWidthEast = (deviationEast / (long double) frameWidth);
       long double steppingWidthNorth = deviationNorth / (long double) frameWidth;
 
       #if BASH_OUTPUT
@@ -395,22 +484,35 @@ int main (int argc, char ** argv)
 
       for (int column = 1; column <= frameWidth; column++)
       {
-        pixelPositionEast = longitudeLeftPoint + column * steppingWidthEast;   //// ERROR ***********
-        pixelPositionNorth = latitudeLeftPoint + column * steppingWidthNorth;
+        pixelPositionEast = (int)((longitudeLeftPoint + column * steppingWidthEast) * 1000000);
+        pixelPositionNorth = (int)((latitudeLeftPoint + column * steppingWidthNorth) * 1000000);
         #if BASH_OUTPUT
           cout << "East: " << pixelPositionEast << "\tNorth: " << pixelPositionNorth <<  endl;
           if (column > 10)
-          return 0;
+            return 0;
         #endif
-
         #if CSV_OUTPUT
           cout << row << ";" << column<< ";" << distanceOfBaseline << ";" << pixelPositionEast << ";" << pixelPositionNorth << endl;
         #endif
+
+        /*** Compare image position ***/
+        bool match = comparePositionToLineMark(pixelPositionEast, pixelPositionNorth, lineMark, markingSize);
+        #if DEBUG_MARKING_CSV
+          cout << column << ";" << row << ";" << pixelPositionNorth << ";" << pixelPositionEast << endl;
+        #endif
+        if(match == true)
+        {
+          int x = frameHeight - row;
+          int y = column;
+          // cout << x << " / " << y << endl;
+          frame.at<Vec3b>(x, y) = Vec3b(0, 0, 255);
+          // frame.at<Vec3b>(column, row) = Vec3b(0, 0, 255);
+        }
       }
     }
 #endif  /**** SOLUTION 2 ****/
 
-
+    frameCounter++;
 
     #if DEBUG_TIME
       auto end = chrono::high_resolution_clock::now();
@@ -419,20 +521,26 @@ int main (int argc, char ** argv)
       cout << ms << endl;
     #endif
 
-    #if CSV_OUTPUT
+    imshow(WIN_SRC, frame);
+
+
+    #if CSV_OUTPUT | DEBUG_MARKING_CSV
+      waitKey(0);
       return 0;
     #endif
 
-    imshow(WIN_SRC, frame);
-    if(waitKey(100) >= 0)
+
+    if(waitKey(1) >= 0)
     {
       break;
     }
 
-    if(captVidSrc.get(CAP_PROP_POS_FRAMES) == 10)
-    {
-      imwrite("VideoFrame.png", frame);
-    }
+    #if STORE_FRAMES
+      string frameName = "../Frames/VideoFrame";
+      frameName.append(to_string(frameCounter));
+      frameName.append(".png");
+      imwrite(frameName, frame);
+    #endif
   }
   
   #endif
